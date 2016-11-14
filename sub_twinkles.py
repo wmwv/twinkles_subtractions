@@ -1,6 +1,8 @@
 import glob
 import os
 
+import lsst.daf.persistence as dafPersist
+
 # The following supernovae need host-galaxy subtractions
 # and the templates are available as of DR1.
 transient_objects = {
@@ -30,6 +32,22 @@ def find_science_images(sn, f, repo_dir, dataset='calexp', DEBUG=False):
         print("SN_SEARCH_REGEX: ", sn_search_regex)
     sn_files = glob.glob(sn_search_regex)
     return sn_files
+
+
+def find_science_dataIds(sn, f, repo_dir, dataset='calexp', DEBUG=False):
+    """
+    >>> repo_dir = '/global/u1/j/jchiang8/twinkles/Run1.1'
+    >>> images = find_science_images(None, 'r', repo_dir)
+    >>> len(images) > 1
+    True
+    """
+    butler = dafPersist.Butler(repo_dir) 
+
+    dataIdTemplate = {'filter': f}
+    thisSubset = butler.subset(datasetType=dataset, **dataIdTemplate)
+    dataIds = [dr.dataId for dr in thisSubset if dr.datasetExists(datasetType=dataset)]
+
+    return dataIds
 
 
 def filename_to_visit(filename):
