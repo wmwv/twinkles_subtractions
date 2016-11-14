@@ -45,8 +45,11 @@ def assemble_catalogs_into_lightcurve(science_visits, repo_dir):
 
     for f, visits in science_visits.items():
         for visit in visits:
-            dataId = {'visit': visit}
-            # Can grab filter, mjd from 'calexp_mc' call on visit
+            dataIdTemplate = {'visit': visit}
+            thisSubset = butler.subset(datasetType='calexp', **dataIdTemplate)
+            dataIds = [dr.dataId for dr in thisSubset if dr.datasetExists(datasetType='forcedRaDec_src') and dr.datasetExists(datasetType='calexp')]
+            dataId = dataIds[0]
+            # Can grab filter, mjd from 'calexp_md' call on visit
             md = butler.get('calexp_md', dataId=dataId, immediate=True)
             mjd = md.get('MJD-OBS')
             # md.get('FILTER')  # But that's not being set right now so we'll keep using f
