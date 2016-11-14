@@ -4,8 +4,6 @@ Explorations by Michael Wood-Vasey <wmwv@pitt.edu>
 
 
 source /global/common/cori/contrib/lsst/lsstDM/setupStack-12_1.sh
-setup lsst_apps
-setup ip_diffim
 setup -j -r /global/homes/w/wmwv/lsst/obs_lsstSim
 # SHA1 8d21232
 setup -j -r /global/homes/w/wmwv/lsst/meas_base
