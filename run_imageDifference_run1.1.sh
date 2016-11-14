@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source ~wmwv/.bashrc.lsst
+
 REPO=/global/u1/j/jchiang8/twinkles/Run1.1
 TEMPLATE_IMAGE_u=999525
 TEMPLATE_IMAGE_g=997764
