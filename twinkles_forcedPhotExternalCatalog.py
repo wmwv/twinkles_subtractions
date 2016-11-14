@@ -89,6 +89,9 @@ def test_find_science_images(name='Test1', verbose=True):
 
 
 if __name__ == "__main__":
+    RUN_PHOT = True
+    LIMIT_N = None
+
     for name, sn in transient_objects.items():
         coord_file = '{}_ra_dec.txt'.format(name)
         out_file = '{}_lc.fits'.format(name)
@@ -101,11 +104,18 @@ if __name__ == "__main__":
             print(name, f, repo_dir)
 #            print(find_science_images(name, f, calexp_repo_dir))
             lightcurve_visits_for_sn[f] = []
-            for science_file in find_science_images(name, f, calexp_repo_dir):
+            science_files = find_science_images(name, f, calexp_repo_dir)
+            # Restrict to first N, if requested
+            if LIMIT_N:
+                # If LIMIT_N > len(science_files), that's fine.  [:LIMIT_N] will just get the full array.
+                science_files = science_files[:LIMIT_N]
+
+            for science_file in science_files:
                 science_visit = filename_to_visit(science_file)
                 lightcurve_visits_for_sn[f].append(science_visit)
                 print(science_file, coord_file, repo_dir, dataset)
-                run_forced_photometry(science_file, coord_file, repo_dir, dataset=dataset)
+                if RUN_PHOT:
+                    run_forced_photometry(science_file, coord_file, repo_dir, dataset=dataset)
 
         sn_lc = assemble_catalogs_into_lightcurve(lightcurve_visits_for_sn, forced_repo_dir)
         sn_lc.write(out_file, overwrite=True)
