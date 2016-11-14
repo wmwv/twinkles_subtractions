@@ -24,7 +24,7 @@ def run_forced_photometry(science_visit, coord_file, repo_dir, dataset='calexp',
 
 def extract_forced_photometry(butler, visit):
     """Return the data from the forced photometry."""
-    dataset = 'forced_src'
+    dataset = 'forcedRaDec_src'
     catalog = butler.get(dataset, dataId={'visit': visit})
     return catalog
 
