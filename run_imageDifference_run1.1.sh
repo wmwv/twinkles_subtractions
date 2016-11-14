@@ -1,14 +1,18 @@
 #!/bin/bash
 
 REPO=/global/u1/j/jchiang8/twinkles/Run1.1
-# SCIENCE_IMAGE=v1940246-fr
-# TEMPLATE_IMAGE=v255276-fr
-SCIENCE_IMAGE=1940246
-TEMPLATE_IMAGE=255276
+TEMPLATE_IMAGE_u=999525
+TEMPLATE_IMAGE_g=997764
+TEMPLATE_IMAGE_r=255276
+TEMPLATE_IMAGE_i=997774
+TEMPLATE_IMAGE_z=997794
+TEMPLATE_IMAGE_y=997820
 
 TMP=/global/homes/w/wmwv/Twinkles
 OUTREPO=${TMP}/Run1.1
-imageDifference.py ${REPO} @science_image.ids --templateId visit=${TEMPLATE_IMAGE} --output ${OUTREPO} --configfile diffimconfig.py --clobber-config --no-versions > Run1.1_diff_r.log 2>&1 
-# imageDifference.py ${REPO} --id visit=1172797 filter=r --templateId visit=${TEMPLATE_IMAGE} --output ${OUTREPO} --configfile diffimconfig.py --clobber-config --no-versions > Run1.1_diff_r.log 2>&1 
-# imageDifference.py ${REPO} --id @science_image.ids filter=r --templateId visit=${TEMPLATE_IMAGE} --output ${OUTREPO} --configfile diffimconfig.py --clobber-config --no-versions > Run1.1_diff_r.log 2>&1 
-#imageDifference.py ${REPO} --id r${SCIENCE_IMAGE}^2171023^959459 --templateId visit=${TEMPLATE_IMAGE} --output ${OUTREPO} --configfile diffimconfig.py > ${SCIENCE_IMAGE}_${TEMPLATE_IMAGE}.log --clobber-config --no-versions 2>&1 
+imageDifference.py ${REPO} @science_image_u.ids --templateId visit=${TEMPLATE_IMAGE_u} --output ${OUTREPO} --configfile diffimconfig.py --clobber-config --no-versions > Run1.1_diff_u.log 2>&1 
+imageDifference.py ${REPO} @science_image_g.ids --templateId visit=${TEMPLATE_IMAGE_g} --output ${OUTREPO} --configfile diffimconfig.py --clobber-config --no-versions > Run1.1_diff_g.log 2>&1 
+imageDifference.py ${REPO} @science_image_r.ids --templateId visit=${TEMPLATE_IMAGE_r} --output ${OUTREPO} --configfile diffimconfig.py --clobber-config --no-versions > Run1.1_diff_r.log 2>&1 
+imageDifference.py ${REPO} @science_image_i.ids --templateId visit=${TEMPLATE_IMAGE_i} --output ${OUTREPO} --configfile diffimconfig.py --clobber-config --no-versions > Run1.1_diff_i.log 2>&1 
+imageDifference.py ${REPO} @science_image_z.ids --templateId visit=${TEMPLATE_IMAGE_z} --output ${OUTREPO} --configfile diffimconfig.py --clobber-config --no-versions > Run1.1_diff_z.log 2>&1 
+imageDifference.py ${REPO} @science_image_y.ids --templateId visit=${TEMPLATE_IMAGE_y} --output ${OUTREPO} --configfile diffimconfig.py --clobber-config --no-versions > Run1.1_diff_y.log 2>&1 
