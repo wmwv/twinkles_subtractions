@@ -33,7 +33,7 @@ def filename_to_visit(filename):
 
     visit_dirname = os.path.basename(os.path.dirname(os.path.dirname(filename)))
     visit = re.findall('v([0-9]+)-fr', visit_dirname)[0]
-    return visit
+    return int(visit)
 
 
 def run_repo_based_subtraction(science_file, template_file, repo_dir, verbose=True):

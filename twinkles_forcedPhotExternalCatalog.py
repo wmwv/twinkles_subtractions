@@ -11,7 +11,7 @@ from sub_twinkles import transient_objects, repo_dir, calexp_repo_dir, forced_re
 def run_forced_photometry(science_visit, coord_file, repo_dir, dataset='calexp', verbose=True):
     science_visit = filename_to_visit(science_file)
     args = [repo_dir,
-            '--id', 'visit={}'.format(science_visit),
+            '--id', 'visit={:d}'.format(science_visit),
             '--dataset', '{}'.format(dataset),
             '--coord_file', '{}'.format(coord_file),
             '--output', '{}'.format(repo_dir),
