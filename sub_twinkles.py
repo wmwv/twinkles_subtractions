@@ -4,7 +4,7 @@ import os
 # The following supernovae need host-galaxy subtractions
 # and the templates are available as of DR1.
 transient_objects = {
-     'test':                   {'r': 'v255276-fr'},
+     'test':                   {'r': '255276'},
 }
 repo_dir = os.path.join(os.getenv('HOME'), 'Twinkles', 'Run1.1')
 forced_repo_dir = repo_dir
