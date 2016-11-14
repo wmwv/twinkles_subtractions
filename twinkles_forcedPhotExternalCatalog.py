@@ -79,14 +79,14 @@ def test_find_science_images(name='Test1', verbose=True):
 
 
 if __name__ == "__main__":
-    RUN_PHOT = False
-    LIMIT_N = 10
+    RUN_PHOT = True
+    LIMIT_N = None
 
     VERBOSE = True
     DEBUG = True
 
-    dataset = 'calexp'
-#    dataset = 'deepDiff'
+#    dataset = 'calexp'
+    dataset = 'deepDiff_differenceExp'
     for name, sn in transient_objects.items():
         coord_file = '{}_ra_dec.txt'.format(name)
         out_file = '{}_{}_lc.fits'.format(name, dataset)
