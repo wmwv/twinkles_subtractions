@@ -1,6 +1,9 @@
 #!/bin/bash
 
-source ~wmwv/.bashrc.lsst
+# Twinkles Hack Weeek version
+source /global/common/cori/contrib/lsst/lsstDM/setupStack-12_1.sh
+# Seting up obs_lsstSim  SHA1 8d21232  (the commit just after the 12.1 tag)
+setup -j -r /global/homes/w/wmwv/lsst/obs_lsstSim
 
 REPO=/global/u1/j/jchiang8/twinkles/Run1.1
 TEMPLATE_IMAGE_u=999525
