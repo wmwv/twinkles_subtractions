@@ -6,12 +6,12 @@ from astropy.table import Table
 import lsst.daf.persistence as dafPersist
 
 from forcedPhotExternalCatalog import ForcedPhotExternalCatalogTask
-from sub_twinkles import transient_objects, repo_dir, calexp_repo_dir, forced_repo_dir, find_science_images, filename_to_visit
+from sub_twinkles import transient_objects, repo_dir, calexp_repo_dir, forced_repo_dir, find_science_dataIds, filename_to_visit
 
-def run_forced_photometry(science_visit, coord_file, repo_dir, dataset='calexp', verbose=True):
-    science_visit = filename_to_visit(science_file)
+def run_forced_photometry(dataId, coord_file, repo_dir, dataset='calexp', verbose=True):
+    # Should expand out dataId to be more detailed than just visit.
     args = [repo_dir,
-            '--id', 'visit={:d}'.format(science_visit),
+            '--id', 'visit={:d}'.format(dataId['visit']),
             '--dataset', '{}'.format(dataset),
             '--coord_file', '{}'.format(coord_file),
             '--output', '{}'.format(repo_dir),
@@ -22,14 +22,7 @@ def run_forced_photometry(science_visit, coord_file, repo_dir, dataset='calexp',
     ForcedPhotExternalCatalogTask.parseAndRun(args=args)
 
 
-def extract_forced_photometry(butler, visit):
-    """Return the data from the forced photometry."""
-    dataset = 'forcedRaDec_src'
-    catalog = butler.get(dataset, dataId={'visit': visit})
-    return catalog
-
-
-def assemble_catalogs_into_lightcurve(science_visits, repo_dir):
+def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, dataset='calexp'):
     """Return Table with measurements."""
     butler = dafPersist.Butler(repo_dir)
 
@@ -43,20 +36,17 @@ def assemble_catalogs_into_lightcurve(science_visits, repo_dir):
     dtype = (str, float, long, float, float, long, float, float, float, float)
     table = Table(names=names, dtype=dtype)
 
-    for f, visits in science_visits.items():
-        for visit in visits:
-            dataIdTemplate = {'visit': visit}
-            thisSubset = butler.subset(datasetType='calexp', **dataIdTemplate)
-            dataIds = [dr.dataId for dr in thisSubset if dr.datasetExists(datasetType='forcedRaDec_src') and dr.datasetExists(datasetType='calexp')]
-            dataId = dataIds[0]
+    for f, dataIds in dataIds_by_filter.items():
+        for dataId in dataIds:
             # Can grab filter, mjd from 'calexp_md' call on visit
             md = butler.get('calexp_md', dataId=dataId, immediate=True)
             mjd = md.get('MJD-OBS')
-            # md.get('FILTER')  # But that's not being set right now so we'll keep using f
+    #        filt = md.get('FILTER')  # But that's not being set right now so we'll keep using f
 
-            this_measurement = extract_forced_photometry(butler, visit)
+            this_measurement = butler.get('forcedRaDec_src', dataId)
             # 'this_measurement' is a table, but we're only extracting the first entry from each column
             cols_for_new_row = {n: this_measurement[n][this_source] for n in names_to_copy}
+    #        cols_for_new_row['filter'] = dataId['filter']
             cols_for_new_row['filter'] = f
             cols_for_new_row['mjd'] = mjd
             table.add_row(cols_for_new_row)
@@ -92,30 +82,34 @@ if __name__ == "__main__":
     RUN_PHOT = True
     LIMIT_N = None
 
+    VERBOSE = True
+    DEBUG = True
+
+#    dataset = 'calexp'
+    dataset = 'deepDiff_differenceExp'
     for name, sn in transient_objects.items():
         coord_file = '{}_ra_dec.txt'.format(name)
-        out_file = '{}_lc.fits'.format(name)
-        dataset = 'calexp'
+        out_file = '{}_{}_lc.fits'.format(name, dataset)
 
         print("Processing photometry for {}".format(name))
         lightcurve_visits_for_sn = {}
         for f in sn.keys():
-            print("FILTER: ", f)
-            print(name, f, repo_dir)
-#            print(find_science_images(name, f, calexp_repo_dir))
+            if VERBOSE:
+                print("FILTER: ", f)
+                print(name, f, repo_dir, dataset)
             lightcurve_visits_for_sn[f] = []
-            science_files = find_science_images(name, f, calexp_repo_dir)
+            dataIds = find_science_dataIds(name, f, repo_dir, dataset=dataset)
             # Restrict to first N, if requested
             if LIMIT_N:
-                # If LIMIT_N > len(science_files), that's fine.  [:LIMIT_N] will just get the full array.
-                science_files = science_files[:LIMIT_N]
+                # If LIMIT_N > len(dataIds), that's fine.  [:LIMIT_N] will just get the full array.
+                dataIds = dataIds[:LIMIT_N]
 
-            for science_file in science_files:
-                science_visit = filename_to_visit(science_file)
-                lightcurve_visits_for_sn[f].append(science_visit)
-                print(science_file, coord_file, repo_dir, dataset)
+            if DEBUG:
+                print("DATA IDS: ", dataIds)
+            for dataId in dataIds:
+                lightcurve_visits_for_sn[f].append(dataId)
                 if RUN_PHOT:
-                    run_forced_photometry(science_file, coord_file, repo_dir, dataset=dataset)
+                    run_forced_photometry(dataId, coord_file, repo_dir, dataset=dataset)
 
-        sn_lc = assemble_catalogs_into_lightcurve(lightcurve_visits_for_sn, forced_repo_dir)
+        sn_lc = assemble_catalogs_into_lightcurve(lightcurve_visits_for_sn, forced_repo_dir, dataset=dataset)
         sn_lc.write(out_file, overwrite=True)

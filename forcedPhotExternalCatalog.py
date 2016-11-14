@@ -128,6 +128,8 @@ class ForcedPhotExternalCatalogTask(pipeBase.CmdLineTask):
         self.dataset = dataset
         if self.dataset == "diff":
             self.dataPrefix = "deepDiff_"
+        elif self.dataset[:8] == "deepDiff":
+            self.dataPrefix = "deepDiff_"
         elif self.dataset == "calexp":
             self.dataPrefix = ""
         else:
