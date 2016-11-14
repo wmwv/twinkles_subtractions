@@ -11,14 +11,23 @@ forced_repo_dir = repo_dir
 calexp_repo_dir = os.path.join(forced_repo_dir, '_parent')
 
 
-def find_science_images(sn, f, repo_dir):
+def find_science_images(sn, f, repo_dir, dataset='calexp', DEBUG=False):
     """
     >>> repo_dir = '/global/u1/j/jchiang8/twinkles/Run1.1'
     >>> images = find_science_images(None, 'r', repo_dir)
     >>> len(images) > 1
     True
     """
-    sn_search_regex = os.path.join(repo_dir, 'calexp', '*-f{}'.format(f), 'R22', 'S11.fits')
+    if dataset == 'deepDiff':
+        prefix = 'diffexp-'
+    else:
+        prefix = ''
+
+    basefile = prefix+'S11.fits'
+
+    sn_search_regex = os.path.join(repo_dir, dataset, '*-f{}'.format(f), 'R22', basefile)
+    if DEBUG:
+        print("SN_SEARCH_REGEX: ", sn_search_regex)
     sn_files = glob.glob(sn_search_regex)
     return sn_files
 
