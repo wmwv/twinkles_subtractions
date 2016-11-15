@@ -121,24 +121,28 @@ def make_catalogs(lightcurve_visits_for_sn, repo_dir, dataset='calexp'):
         sn_lc.write(out_file, overwrite=True)
 
 
-def run_photometry(transient_objects, repo_dir, dataset='calexp',
-                   RUN_PHOT=True, DEBUG=False):
+def run_photometry_per_object(transient_objects, repo_dir, dataset='calexp',
+                   filters=None, RUN_PHOT=True, DEBUG=False):
     """Run photometry for given set of objects on all available images.
 
     RUN_PHOT : Run photometry.  If False then photometry is not run, but visits are gathered
     """
+    # Can't put mutable as default argument above without much sadness.
+    if filters is None:
+        filters = ['u', 'g', 'r', 'i', 'z', 'y']
+
     lightcurve_visits = {}
     for name, sn in transient_objects.items():
         coord_file = '{}_ra_dec.txt'.format(name)
 
         lightcurve_visits_for_sn = {}
         print("Processing photometry for {}".format(name))
-        for f in sn.keys():
+        for f in filters:
             if VERBOSE:
                 print("FILTER: ", f)
                 print(name, f, repo_dir, dataset)
             lightcurve_visits_for_sn[f] = []
-            dataIds = find_science_dataIds(name, f, repo_dir, dataset=dataset)
+            dataIds = find_science_dataIds(f, repo_dir, dataset=dataset)
             # Restrict to first N, if requested
             if LIMIT_N:
                 # If LIMIT_N > len(dataIds), that's fine.  [:LIMIT_N] will just get the full array.
@@ -156,14 +160,14 @@ def run_photometry(transient_objects, repo_dir, dataset='calexp',
 
 
 if __name__ == "__main__":
-    RUN_PHOT = False
-    LIMIT_N = None
+    RUN_PHOT = True
+    LIMIT_N = 10
 
     VERBOSE = True
     DEBUG = True
 
-#    dataset = 'calexp'
-    dataset = 'deepDiff_differenceExp'
+    dataset = 'calexp'
+#    dataset = 'deepDiff_differenceExp'
 
-    lightcurve_visits = run_photometry(transient_objects, repo_dir, dataset, RUN_PHOT=RUN_PHOT)
+    lightcurve_visits = run_photometry_per_object(transient_objects, repo_dir, dataset, RUN_PHOT=RUN_PHOT)
     make_catalogs(lightcurve_visits, repo_dir, dataset=dataset)

@@ -32,7 +32,7 @@ def find_science_images(sn, f, repo_dir, dataset='calexp', DEBUG=False):
     return sn_files
 
 
-def find_science_dataIds(sn, f, repo_dir, dataset='calexp', DEBUG=False):
+def find_science_dataIds(f, repo_dir, dataset='calexp', DEBUG=False):
     """
     >>> repo_dir = '/global/u1/j/jchiang8/twinkles/Run1.1'
     >>> images = find_science_images(None, 'r', repo_dir)
