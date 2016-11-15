@@ -3,6 +3,8 @@ import os
 
 from astropy.table import Table
 
+import lsst.afw.image as afwImage
+import lsst.afw.image.utils as afwImageUtils
 import lsst.daf.persistence as dafPersist
 
 from forcedPhotExternalCatalog import ForcedPhotExternalCatalogTask
@@ -29,11 +31,14 @@ def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, dataset='cale
     names_to_copy = ['objectId', 'coord_ra', 'coord_dec', 'parentObjectId',
                      'base_RaDecCentroid_x', 'base_RaDecCentroid_y',
                      'base_PsfFlux_flux', 'base_PsfFlux_fluxSigma']
-    names_to_generate = ['filter', 'mjd']
+    names_to_generate = ['filter', 'mjd', 'base_PsfFlux_mag', 'base_PsfFlux_magSigma']
     this_source = 0  # Take just the first source.
 
     names = names_to_generate + names_to_copy
-    dtype = (str, float, long, float, float, long, float, float, float, float)
+    dtype = (str, float, float, float,
+             long, float, float, long,
+             float, float,
+             float, float)
     table = Table(names=names, dtype=dtype)
 
     if dataset == 'deepDiff_differenceExp':
@@ -57,6 +62,16 @@ def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, dataset='cale
     #        cols_for_new_row['filter'] = dataId['filter']
             cols_for_new_row['filter'] = f
             cols_for_new_row['mjd'] = mjd
+
+            # Calibrate to magnitudes
+            # The calibration information for the calexp
+            # should still apply to the difference image
+            calib = afwImage.Calib(md)
+            with afwImageUtils.CalibNoThrow():
+                cols_for_new_row['base_PsfFlux_mag'], cols_for_new_row['base_PsfFlux_magSigma'] = \
+                    calib.getMagnitude(cols_for_new_row['base_PsfFlux_flux'],
+                                       cols_for_new_row['base_PsfFlux_fluxSigma'])
+
             table.add_row(cols_for_new_row)
 
     return table
