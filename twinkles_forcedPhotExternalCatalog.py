@@ -3,6 +3,8 @@ import os
 
 from astropy.table import Table
 
+import lsst.afw.image as afwImage
+import lsst.afw.image.utils as afwImageUtils
 import lsst.daf.persistence as dafPersist
 
 from forcedPhotExternalCatalog import ForcedPhotExternalCatalogTask
@@ -29,11 +31,22 @@ def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, dataset='cale
     names_to_copy = ['objectId', 'coord_ra', 'coord_dec', 'parentObjectId',
                      'base_RaDecCentroid_x', 'base_RaDecCentroid_y',
                      'base_PsfFlux_flux', 'base_PsfFlux_fluxSigma']
-    names_to_generate = ['filter', 'mjd']
+    # flux_zp25 is flux normalized to a zeropoint of 25.
+    # This convention is useful and appropriate for transient sources
+    # that are expected to be negative as well as positive
+    # for a given lightcurve.
+    names_to_generate = ['filter', 'mjd',
+                         'base_PsfFlux_mag', 'base_PsfFlux_magSigma',
+                         'base_PsfFlux_flux_zp25', 'base_PsfFlux_fluxSigma_zp25']
     this_source = 0  # Take just the first source.
 
     names = names_to_generate + names_to_copy
-    dtype = (str, float, long, float, float, long, float, float, float, float)
+    dtype = (str, float,
+             float, float,
+             float, float,
+             long, float, float, long,
+             float, float,
+             float, float)
     table = Table(names=names, dtype=dtype)
 
     if dataset == 'deepDiff_differenceExp':
@@ -57,6 +70,21 @@ def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, dataset='cale
     #        cols_for_new_row['filter'] = dataId['filter']
             cols_for_new_row['filter'] = f
             cols_for_new_row['mjd'] = mjd
+
+            # Calibrate to magnitudes
+            # The calibration information for the calexp
+            # should still apply to the difference image
+            calib = afwImage.Calib(md)
+            with afwImageUtils.CalibNoThrow():
+                cols_for_new_row['base_PsfFlux_mag'], cols_for_new_row['base_PsfFlux_magSigma'] = \
+                    calib.getMagnitude(cols_for_new_row['base_PsfFlux_flux'],
+                                       cols_for_new_row['base_PsfFlux_fluxSigma'])
+            flux_mag_0, flux_magSigma_0 = calib.getFluxMag0()
+            flux_mag_25 = 10**(-0.4*25) * flux_mag_0
+            flux_norm = 1/flux_mag_25
+            cols_for_new_row['base_PsfFlux_flux_zp25'] = flux_norm * cols_for_new_row['base_PsfFlux_flux']
+            cols_for_new_row['base_PsfFlux_fluxSigma_zp25'] = flux_norm * cols_for_new_row['base_PsfFlux_fluxSigma']
+
             table.add_row(cols_for_new_row)
 
     return table
