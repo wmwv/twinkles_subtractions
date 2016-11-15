@@ -8,7 +8,7 @@ import lsst.afw.image.utils as afwImageUtils
 import lsst.daf.persistence as dafPersist
 
 from forcedPhotExternalCatalog import ForcedPhotExternalCatalogTask
-from sub_twinkles import transient_objects, repo_dir, calexp_repo_dir, forced_repo_dir, find_science_dataIds, filename_to_visit
+from sub_twinkles import transient_objects, repo_dir, find_science_dataIds, filename_to_visit
 
 def run_forced_photometry(dataId, coord_file, repo_dir, dataset='calexp', verbose=True):
     # Should expand out dataId to be more detailed than just visit.
@@ -147,5 +147,5 @@ if __name__ == "__main__":
                 if RUN_PHOT:
                     run_forced_photometry(dataId, coord_file, repo_dir, dataset=dataset)
 
-        sn_lc = assemble_catalogs_into_lightcurve(lightcurve_visits_for_sn, forced_repo_dir, dataset=dataset)
+        sn_lc = assemble_catalogs_into_lightcurve(lightcurve_visits_for_sn, repo_dir, dataset=dataset)
         sn_lc.write(out_file, overwrite=True)

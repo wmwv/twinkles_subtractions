@@ -9,8 +9,6 @@ transient_objects = {
      'test':                   {'r': '255276'},
 }
 repo_dir = os.path.join(os.getenv('HOME'), 'Twinkles', 'Run1.1')
-forced_repo_dir = repo_dir
-calexp_repo_dir = os.path.join(forced_repo_dir, '_parent')
 
 
 def find_science_images(sn, f, repo_dir, dataset='calexp', DEBUG=False):
