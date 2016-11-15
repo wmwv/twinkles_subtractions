@@ -198,7 +198,7 @@ def run_photometry_per_object(transient_objects, repo_dir, dataset='calexp',
 
 if __name__ == "__main__":
     RUN_PHOT = True
-    LIMIT_N = 10
+    LIMIT_N = None
 
     VERBOSE = True
     DEBUG = True
@@ -206,5 +206,7 @@ if __name__ == "__main__":
     dataset = 'calexp'
 #    dataset = 'deepDiff_differenceExp'
 
-    lightcurve_visits = run_photometry_per_object(transient_objects, repo_dir, dataset, RUN_PHOT=RUN_PHOT)
+#    lightcurve_visits = run_photometry_per_object(transient_objects, repo_dir, dataset, RUN_PHOT=RUN_PHOT)
+    coord_file = 'test_ra_dec.txt'
+    lightcurve_visits = run_photometry_for_coord_file(coord_file, repo_dir, dataset, RUN_PHOT=RUN_PHOT)
     make_catalogs(lightcurve_visits, repo_dir, dataset=dataset)
