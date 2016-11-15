@@ -121,6 +121,39 @@ def make_catalogs(lightcurve_visits_for_sn, repo_dir, dataset='calexp'):
         sn_lc.write(out_file, overwrite=True)
 
 
+def run_photometry_for_coord_file(coord_file, repo_dir, dataset='calexp',
+                   filters=None, RUN_PHOT=True, DEBUG=False):
+    """Run photometry for all objects in a coordinate file on all available images.
+
+    RUN_PHOT : Run photometry.  If False then photometry is not run, but visits are gathered
+    """
+    # Can't put mutable as default argument above without much sadness.
+    if filters is None:
+        filters = ['u', 'g', 'r', 'i', 'z', 'y']
+
+    lightcurve_visits = {}
+    lightcurve_visits_for_sn = {}
+    print("Processing photometry for {}".format(name))
+    for f in filters:
+        lightcurve_visits_for_sn[f] = []
+        dataIds = find_science_dataIds(f, repo_dir, dataset=dataset)
+        # Restrict to first N, if requested
+        if LIMIT_N:
+            # If LIMIT_N > len(dataIds), that's fine.  [:LIMIT_N] will just get the full array.
+            dataIds = dataIds[:LIMIT_N]
+
+        if DEBUG:
+            print("DATA IDS: ", dataIds)
+        for dataId in dataIds:
+            lightcurve_visits_for_sn[f].append(dataId)
+            if RUN_PHOT:
+                run_forced_photometry(dataId, coord_file, repo_dir, dataset=dataset)
+# How should this be done, and how should it be passed to assemble
+    lightcurve_visits[name] = lightcurve_visits_for_sn
+
+    return lightcurve_visits
+
+
 def run_photometry_per_object(transient_objects, repo_dir, dataset='calexp',
                    filters=None, RUN_PHOT=True, DEBUG=False):
     """Run photometry for given set of objects on all available images.
