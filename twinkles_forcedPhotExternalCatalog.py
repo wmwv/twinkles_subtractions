@@ -114,21 +114,25 @@ def test_find_science_images(name='Test1', verbose=True):
     assert len(obs) >= 1
 
 
-if __name__ == "__main__":
-    RUN_PHOT = True
-    LIMIT_N = None
+def make_catalogs(lightcurve_visits_for_sn, repo_dir, dataset='calexp'):
+    for name, info in lightcurve_visits_for_sn.items():
+        out_file = '{}_{}_lc.fits'.format(name, dataset)
+        sn_lc = assemble_catalogs_into_lightcurve(lightcurve_visits_for_sn, repo_dir, dataset=dataset)
+        sn_lc.write(out_file, overwrite=True)
 
-    VERBOSE = True
-    DEBUG = True
 
-#    dataset = 'calexp'
-    dataset = 'deepDiff_differenceExp'
+def run_photometry(transient_objects, repo_dir, dataset='calexp',
+                   RUN_PHOT=True, DEBUG=False):
+    """Run photometry for given set of objects on all available images.
+
+    RUN_PHOT : Run photometry.  If False then photometry is not run, but visits are gathered
+    """
+    lightcurve_visits = {}
     for name, sn in transient_objects.items():
         coord_file = '{}_ra_dec.txt'.format(name)
-        out_file = '{}_{}_lc.fits'.format(name, dataset)
 
-        print("Processing photometry for {}".format(name))
         lightcurve_visits_for_sn = {}
+        print("Processing photometry for {}".format(name))
         for f in sn.keys():
             if VERBOSE:
                 print("FILTER: ", f)
@@ -146,6 +150,20 @@ if __name__ == "__main__":
                 lightcurve_visits_for_sn[f].append(dataId)
                 if RUN_PHOT:
                     run_forced_photometry(dataId, coord_file, repo_dir, dataset=dataset)
+        lightcurve_visits[name] = lightcurve_visits_for_sn
 
-        sn_lc = assemble_catalogs_into_lightcurve(lightcurve_visits_for_sn, repo_dir, dataset=dataset)
-        sn_lc.write(out_file, overwrite=True)
+    return lightcurve_visits_for_sn
+
+
+if __name__ == "__main__":
+    RUN_PHOT = False
+    LIMIT_N = 10
+
+    VERBOSE = True
+    DEBUG = True
+
+#    dataset = 'calexp'
+    dataset = 'deepDiff_differenceExp'
+
+    lightcurve_visits_for_sn = run_photometry(transient_objects, repo_dir, dataset, RUN_PHOT=RUN_PHOT)
+    make_catalogs(lightcurve_visits_for_sn, repo_dir, dataset=dataset)
