@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import os
 
+from collections import OrderedDict
+
 from astropy.table import Table
 
 import lsst.afw.image as afwImage
@@ -24,7 +26,7 @@ def run_forced_photometry(dataId, coord_file, repo_dir, dataset='calexp', verbos
     ForcedPhotExternalCatalogTask.parseAndRun(args=args)
 
 
-def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, dataset='calexp', DEBUG=False):
+def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, source_row=0, dataset='calexp', DEBUG=False):
     """Return Table with measurements."""
     butler = dafPersist.Butler(repo_dir)
 
@@ -38,8 +40,6 @@ def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, dataset='cale
     names_to_generate = ['filter', 'mjd',
                          'base_PsfFlux_mag', 'base_PsfFlux_magSigma',
                          'base_PsfFlux_flux_zp25', 'base_PsfFlux_fluxSigma_zp25']
-    this_source = 0  # Take just the first source.
-
     names = names_to_generate + names_to_copy
     dtype = (str, float,
              float, float,
@@ -66,7 +66,7 @@ def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, dataset='cale
 
             this_measurement = butler.get(forced_dataset, dataId)
             # 'this_measurement' is a table, but we're only extracting the first entry from each column
-            cols_for_new_row = {n: this_measurement[n][this_source] for n in names_to_copy}
+            cols_for_new_row = {n: this_measurement[n][source_row] for n in names_to_copy}
     #        cols_for_new_row['filter'] = dataId['filter']
             cols_for_new_row['filter'] = f
             cols_for_new_row['mjd'] = mjd
@@ -115,9 +115,9 @@ def test_find_science_images(name='Test1', verbose=True):
 
 
 def make_catalogs(lightcurve_visits_for_sn, repo_dir, dataset='calexp'):
-    for name, info in lightcurve_visits_for_sn.items():
+    for source_num, (name, info) in enumerate(lightcurve_visits_for_sn.items()):
         out_file = '{}_{}_lc.fits'.format(name, dataset)
-        sn_lc = assemble_catalogs_into_lightcurve(info, repo_dir, dataset=dataset)
+        sn_lc = assemble_catalogs_into_lightcurve(info, repo_dir, source_num, dataset=dataset)
         sn_lc.write(out_file, overwrite=True)
 
 
@@ -131,9 +131,9 @@ def run_photometry_for_coord_file(coord_file, repo_dir, dataset='calexp',
     if filters is None:
         filters = ['u', 'g', 'r', 'i', 'z', 'y']
 
-    lightcurve_visits = {}
+    objects = Table.read(coord_file, format='ascii.csv')
+
     lightcurve_visits_for_sn = {}
-    print("Processing photometry for {}".format(name))
     for f in filters:
         lightcurve_visits_for_sn[f] = []
         dataIds = find_science_dataIds(f, repo_dir, dataset=dataset)
@@ -149,7 +149,11 @@ def run_photometry_for_coord_file(coord_file, repo_dir, dataset='calexp',
             if RUN_PHOT:
                 run_forced_photometry(dataId, coord_file, repo_dir, dataset=dataset)
 # How should this be done, and how should it be passed to assemble
-    lightcurve_visits[name] = lightcurve_visits_for_sn
+    # We need to preserve order so that we read out the forced photometry
+    # correctly later.
+    lightcurve_visits = OrderedDict()
+    for n in objects['Name']:
+        lightcurve_visits[n] = lightcurve_visits_for_sn
 
     return lightcurve_visits
 
