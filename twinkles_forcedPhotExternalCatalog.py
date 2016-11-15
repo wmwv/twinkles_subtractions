@@ -117,7 +117,7 @@ def test_find_science_images(name='Test1', verbose=True):
 def make_catalogs(lightcurve_visits_for_sn, repo_dir, dataset='calexp'):
     for name, info in lightcurve_visits_for_sn.items():
         out_file = '{}_{}_lc.fits'.format(name, dataset)
-        sn_lc = assemble_catalogs_into_lightcurve(lightcurve_visits_for_sn, repo_dir, dataset=dataset)
+        sn_lc = assemble_catalogs_into_lightcurve(info, repo_dir, dataset=dataset)
         sn_lc.write(out_file, overwrite=True)
 
 
@@ -152,12 +152,12 @@ def run_photometry(transient_objects, repo_dir, dataset='calexp',
                     run_forced_photometry(dataId, coord_file, repo_dir, dataset=dataset)
         lightcurve_visits[name] = lightcurve_visits_for_sn
 
-    return lightcurve_visits_for_sn
+    return lightcurve_visits
 
 
 if __name__ == "__main__":
     RUN_PHOT = False
-    LIMIT_N = 10
+    LIMIT_N = None
 
     VERBOSE = True
     DEBUG = True
@@ -165,5 +165,5 @@ if __name__ == "__main__":
 #    dataset = 'calexp'
     dataset = 'deepDiff_differenceExp'
 
-    lightcurve_visits_for_sn = run_photometry(transient_objects, repo_dir, dataset, RUN_PHOT=RUN_PHOT)
-    make_catalogs(lightcurve_visits_for_sn, repo_dir, dataset=dataset)
+    lightcurve_visits = run_photometry(transient_objects, repo_dir, dataset, RUN_PHOT=RUN_PHOT)
+    make_catalogs(lightcurve_visits, repo_dir, dataset=dataset)
