@@ -22,7 +22,7 @@ def run_forced_photometry(dataId, coord_file, repo_dir, dataset='calexp', verbos
     ForcedPhotExternalCatalogTask.parseAndRun(args=args)
 
 
-def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, dataset='calexp'):
+def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, dataset='calexp', DEBUG=False):
     """Return Table with measurements."""
     butler = dafPersist.Butler(repo_dir)
 
@@ -36,6 +36,14 @@ def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, dataset='cale
     dtype = (str, float, long, float, float, long, float, float, float, float)
     table = Table(names=names, dtype=dtype)
 
+    if dataset == 'deepDiff_differenceExp':
+        prefix = 'deepDiff_'
+    else:
+        prefix = ''
+    forced_dataset = prefix+'forcedRaDec_src'
+    if DEBUG:
+        print("FORCED_DATASET: ", forced_dataset)
+
     for f, dataIds in dataIds_by_filter.items():
         for dataId in dataIds:
             # Can grab filter, mjd from 'calexp_md' call on visit
@@ -43,7 +51,7 @@ def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, dataset='cale
             mjd = md.get('MJD-OBS')
     #        filt = md.get('FILTER')  # But that's not being set right now so we'll keep using f
 
-            this_measurement = butler.get('forcedRaDec_src', dataId)
+            this_measurement = butler.get(forced_dataset, dataId)
             # 'this_measurement' is a table, but we're only extracting the first entry from each column
             cols_for_new_row = {n: this_measurement[n][this_source] for n in names_to_copy}
     #        cols_for_new_row['filter'] = dataId['filter']
