@@ -4,6 +4,8 @@ import os
 
 from collections import OrderedDict
 
+import numpy as np
+
 from astropy.table import Table
 
 import lsst.afw.image as afwImage
@@ -216,6 +218,14 @@ def parse_the_args():
     parser.add_argument('--debug', default=False, action='store_true', help='Debugging output.')
 
     return parser.parse_args()
+
+
+def create_coord_file_from_diaSrc(dataId, repo_dir, out_file='coord_file.csv', dataset='deepDiff_diaSrc'):
+    butler = dafPersist.Butler(repo_dir)
+    diaSrc = butler.get(dataset, dataId=dataId, immediate=True)
+    sources = Table([diaSrc['id'], np.rad2deg(diaSrc['coord_ra']), np.rad2deg(diaSrc['coord_dec'])],
+                    names=('Name', 'RA', 'Dec'))
+    sources.write(out_file)
 
 
 def run(args):
