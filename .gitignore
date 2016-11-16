@@ -1,0 +1,7 @@
+*.fits
+*.log
+*.out
+*.pyc
+Run1.1
+Run3
+*.swp
