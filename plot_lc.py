@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import argparse
+
 import sys
 
 import matplotlib.pyplot as plt
@@ -7,14 +9,28 @@ import matplotlib.pyplot as plt
 from astropy.table import Table
 
 if __name__ == "__main__":
-    plot_file = sys.argv[1]
+    description = """
+    Plot a FITS binary table lightcurve.  
+    Requires columns of 'base_PsfFlux_mag', 'base_PsfFlux_magSigma'
+    'base_PsfFlux_flux_zp25', 'base_PsfFlux_fluxSigma_zp25'
+    where 'zp25' means the flux has been calibrated to a zp of 25.
+    I.e., for positive flux values:
+    mag = -2.5*log10(flux) + 25
+    """
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('plot_file', type=str, help="Lightcurve file to plot.")
+    parser.add_argument('--mag', dest='plot_mag', default=False, action='store_true',
+                        help='Plot magnitudes')
+    parser.add_argument('--no_mag', dest='plot_mag', action='store_false')
+    parser.add_argument('--flux', dest='plot_flux', default=True, action='store_true',
+                        help='Plot normalized flux (zp=25).')
+    parser.add_argument('--no_flux', dest='plot_flux', default=True, action='store_false')
 
-    plot_mag = True
-    plot_flux = True
+    args = parser.parse_args()
 
-    data = Table.read(plot_file)
+    data = Table.read(args.plot_file)
 
-    if plot_mag:
+    if args.plot_mag:
         plt.errorbar(data['mjd'], data['base_PsfFlux_mag'], data['base_PsfFlux_magSigma'], linestyle='none')
         plt.xlabel('MJD')
         plt.ylabel('base_PsfFlux_mag')
@@ -22,7 +38,7 @@ if __name__ == "__main__":
         plt.ylim(max(ylim), min(ylim))
         plt.show()
 
-    if plot_flux:
+    if args.plot_flux:
         plt.errorbar(data['mjd'], data['base_PsfFlux_flux_zp25'], data['base_PsfFlux_fluxSigma_zp25'], linestyle='none')
         plt.xlabel('MJD')
         plt.ylabel('flux_zp25  [mag = -2.5*log10(flux) + 25]')
