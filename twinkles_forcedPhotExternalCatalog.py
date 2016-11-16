@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 import os
 
 from collections import OrderedDict
@@ -122,7 +123,7 @@ def make_catalogs(lightcurve_visits_for_sn, repo_dir, dataset='calexp'):
 
 
 def run_photometry_for_coord_file(coord_file, repo_dir, dataset='calexp',
-                   filters=None, RUN_PHOT=True, DEBUG=False):
+                   filters=None, RUN_PHOT=True, LIMIT_N=None, DEBUG=False):
     """Run photometry for all objects in a coordinate file on all available images.
 
     RUN_PHOT : Run photometry.  If False then photometry is not run, but visits are gathered
@@ -197,16 +198,24 @@ def run_photometry_per_object(transient_objects, repo_dir, dataset='calexp',
 
 
 if __name__ == "__main__":
-    RUN_PHOT = True
-    LIMIT_N = None
+    import argparse
 
-    VERBOSE = True
-    DEBUG = True
+    parser = argparse.ArgumentParser(description='Run catalog-based forced photometry')
+    parser.add_argument('coord_file', type=str,
+                        help='Coordinate file with Name,RA,Dec.  Coordinates in J2000 decimal degrees.')
+    parser.add_argument('--dataset', default='calexp',
+                        help='Dataset to photometry, e.g., "calexp" or "deepDiff_differenceExp"')
+    parser.add_argument('--run_phot', default=True, action='store_true',
+                        help='Run actual photometry.  Turn off for testing catalog assembly.')
+    parser.add_argument('--limit_n', default=None,
+                        help='Number of images per filter to analyze.  For testing might choose to set to 10.')
+    parser.add_argument('--repo_dir', default=repo_dir,
+                        help='Butler repository to organize.')
+    parser.add_argument('--verbose', default=False, action='store_true', help='Verbose output.')
+    parser.add_argument('--debug', default=False, action='store_true', help='Debugging output.')
 
-    dataset = 'calexp'
-#    dataset = 'deepDiff_differenceExp'
+    args = parser.parse_args()
 
 #    lightcurve_visits = run_photometry_per_object(transient_objects, repo_dir, dataset, RUN_PHOT=RUN_PHOT)
-    coord_file = 'test_ra_dec.txt'
-    lightcurve_visits = run_photometry_for_coord_file(coord_file, repo_dir, dataset, RUN_PHOT=RUN_PHOT)
-    make_catalogs(lightcurve_visits, repo_dir, dataset=dataset)
+    lightcurve_visits = run_photometry_for_coord_file(args.coord_file, args.repo_dir, args.dataset, RUN_PHOT=args.run_phot)
+    make_catalogs(lightcurve_visits, args.repo_dir, dataset=args.dataset)
