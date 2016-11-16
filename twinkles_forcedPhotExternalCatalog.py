@@ -197,7 +197,7 @@ def run_photometry_per_object(transient_objects, repo_dir, dataset='calexp',
     return lightcurve_visits
 
 
-if __name__ == "__main__":
+def parse_the_args():
     import argparse
 
     parser = argparse.ArgumentParser(description='Run catalog-based forced photometry')
@@ -214,7 +214,11 @@ if __name__ == "__main__":
     parser.add_argument('--verbose', default=False, action='store_true', help='Verbose output.')
     parser.add_argument('--debug', default=False, action='store_true', help='Debugging output.')
 
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = parse_the_args()
 
 #    lightcurve_visits = run_photometry_per_object(transient_objects, repo_dir, dataset, RUN_PHOT=RUN_PHOT)
     lightcurve_visits = run_photometry_for_coord_file(args.coord_file, args.repo_dir, args.dataset, RUN_PHOT=args.run_phot)
