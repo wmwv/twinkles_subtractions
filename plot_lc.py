@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 import argparse
-
 import sys
 
+import numpy as np
 import matplotlib.pyplot as plt
 
 from astropy.table import Table
@@ -30,8 +30,16 @@ if __name__ == "__main__":
 
     data = Table.read(args.plot_file)
 
+    color = {'u': 'cyan', 'g': 'blue', 'r': 'green', 'i': 'red', 'z': 'm', 'y': 'black'}
+    filters = ['u', 'g', 'r', 'i', 'z', 'y']
     if args.plot_mag:
-        plt.errorbar(data['mjd'], data['base_PsfFlux_mag'], data['base_PsfFlux_magSigma'], linestyle='none')
+        for f in filters:
+            wf, = np.where(data['filter'] == f)
+            if len(wf) < 1:
+                continue
+            dataf = data[wf]
+            plt.errorbar(dataf['mjd'], dataf['base_PsfFlux_mag'], dataf['base_PsfFlux_magSigma'], linestyle='none', color=color[f])
+
         plt.xlabel('MJD')
         plt.ylabel('base_PsfFlux_mag')
         ylim = plt.ylim()
@@ -39,7 +47,12 @@ if __name__ == "__main__":
         plt.show()
 
     if args.plot_flux:
-        plt.errorbar(data['mjd'], data['base_PsfFlux_flux_zp25'], data['base_PsfFlux_fluxSigma_zp25'], linestyle='none')
+        for f in filters:
+            wf, = np.where(data['filter'] == f)
+            if len(wf) < 1:
+                continue
+            dataf = data[wf]
+            plt.errorbar(dataf['mjd'], dataf['base_PsfFlux_flux_zp25'], dataf['base_PsfFlux_fluxSigma_zp25'], linestyle='none', color=color[f])
         plt.xlabel('MJD')
         plt.ylabel('flux_zp25  [mag = -2.5*log10(flux) + 25]')
         plt.show()
