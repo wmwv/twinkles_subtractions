@@ -218,6 +218,14 @@ def parse_the_args():
     return parser.parse_args()
 
 
+def create_coord_file_from_diaSrc(dataId, repo_dir, out_file='coord_file.csv', dataset='deepDiff_diaSrc'):
+    butler = dafPersist.Butler(repo_dir)
+    diaSrc = butler.get(dataset, dataId=dataId, immediate=True)
+    sources = Table([diaSrc['id'], diaSrc['coord_ra'], diaSrc['coord_dec']],
+                    names=('Name', 'RA', 'Dec'))
+    sources.write(out_file)
+
+
 def run(args):
 #    lightcurve_visits = run_photometry_per_object(transient_objects, repo_dir, dataset, RUN_PHOT=RUN_PHOT)
     lightcurve_visits = run_photometry_for_coord_file(args.coord_file, args.repo_dir, args.dataset, RUN_PHOT=args.run_phot)
