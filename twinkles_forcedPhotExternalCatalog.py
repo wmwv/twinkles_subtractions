@@ -210,7 +210,7 @@ def parse_the_args():
     parser.add_argument('--run_phot', default=True, action='store_true',
                         help='Run actual photometry.  Turn off for testing catalog assembly.')
     parser.add_argument('--no_run_phot', dest='run_phot', action='store_false')
-    parser.add_argument('--limit_n', default=None,
+    parser.add_argument('--limit_n', default=None, type=int,
                         help='Number of images per filter to analyze.  For testing might choose to set to 10.')
     parser.add_argument('--repo_dir', default=repo_dir,
                         help='Butler repository to organize.')
@@ -230,7 +230,7 @@ def create_coord_file_from_diaSrc(dataId, repo_dir, out_file='coord_file.csv', d
 
 def run(args):
 #    lightcurve_visits = run_photometry_per_object(transient_objects, repo_dir, dataset, RUN_PHOT=RUN_PHOT)
-    lightcurve_visits = run_photometry_for_coord_file(args.coord_file, args.repo_dir, args.dataset, RUN_PHOT=args.run_phot)
+    lightcurve_visits = run_photometry_for_coord_file(args.coord_file, args.repo_dir, args.dataset, LIMIT_N=args.limit_n, RUN_PHOT=args.run_phot)
     make_catalogs(lightcurve_visits, args.repo_dir, dataset=args.dataset)
 
 
