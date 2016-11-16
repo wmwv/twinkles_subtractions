@@ -218,9 +218,12 @@ def parse_the_args():
     return parser.parse_args()
 
 
-if __name__ == "__main__":
-    args = parse_the_args()
-
+def run(args):
 #    lightcurve_visits = run_photometry_per_object(transient_objects, repo_dir, dataset, RUN_PHOT=RUN_PHOT)
     lightcurve_visits = run_photometry_for_coord_file(args.coord_file, args.repo_dir, args.dataset, RUN_PHOT=args.run_phot)
     make_catalogs(lightcurve_visits, args.repo_dir, dataset=args.dataset)
+
+
+if __name__ == "__main__":
+    args = parse_the_args()
+    run(args)
