@@ -207,6 +207,7 @@ def parse_the_args():
                         help='Dataset to photometry, e.g., "calexp" or "deepDiff_differenceExp"')
     parser.add_argument('--run_phot', default=True, action='store_true',
                         help='Run actual photometry.  Turn off for testing catalog assembly.')
+    parser.add_argument('--no_run_phot', dest='run_phot', action='store_false')
     parser.add_argument('--limit_n', default=None,
                         help='Number of images per filter to analyze.  For testing might choose to set to 10.')
     parser.add_argument('--repo_dir', default=repo_dir,
