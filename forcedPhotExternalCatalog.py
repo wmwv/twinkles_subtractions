@@ -5,6 +5,7 @@ from __future__ import print_function, division
 import lsst
 import lsst.meas.base as measBase
 import lsst.afw.detection as afwDetection
+import lsst.afw.coord as afwCoord
 import lsst.afw.geom as afwGeom
 import lsst.afw.table as afwTable
 import lsst.pipe.base as pipeBase
@@ -141,7 +142,18 @@ class ForcedPhotExternalCatalogTask(pipeBase.CmdLineTask):
 
         refCat = self.create_source_catalog_from_external_catalog(dataRef, coord_file)
 
+        self.log.info("Restricting catalog to sources that fall on exposure %s" % (dataRef.dataId))
+        in_exp = []
+        coord_ra_key = refCat.schema.find("coord_ra").key
+        coord_dec_key = refCat.schema.find("coord_dec").key
+        boxd = afwGeom.Box2D(exposure.getBBox())
+        for obj in refCat:
+            coord = afwCoord.IcrsCoord(obj.get("coord_ra"), obj.get("coord_dec"))
+            am_i_in = boxd.contains(expWcs.skyToPixel(coord))
+            in_exp.append(am_i_in)
+
         measCat = self.measurement.generateMeasCat(exposure, refCat, expWcs)
+
 
         self.log.info("Performing forced measurement on %s science image %s" % (dataset, dataRef.dataId))
 
