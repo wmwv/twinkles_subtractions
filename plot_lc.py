@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+import os
 import sys
 
 import numpy as np
@@ -25,8 +26,24 @@ if __name__ == "__main__":
     parser.add_argument('--flux', dest='plot_flux', default=True, action='store_true',
                         help='Plot normalized flux (zp=25).')
     parser.add_argument('--no_flux', dest='plot_flux', default=True, action='store_false')
+    parser.add_argument('--png', default=False, action="store_true",
+                        help="Save plot as PNG file")
+    parser.add_argument('--pdf', default=False, action="store_true",
+                        help="Save plot as PDF file")
+    parser.add_argument('--show', dest='show', default=True, action="store_true",
+                        help="Show plots to the screen")
+    parser.add_argument('--noshow', dest='show', action="store_false",
+                        help="Don't show plots to the screen")
 
     args = parser.parse_args()
+
+    suffixes = []
+    if args.png:
+        suffixes.append('.png')
+    if args.pdf:
+        suffixes.append('.pdf')
+
+    plotbase, _ = os.path.splitext(args.plot_file)
 
     data = Table.read(args.plot_file)
 
@@ -42,9 +59,17 @@ if __name__ == "__main__":
 
         plt.xlabel('MJD')
         plt.ylabel('base_PsfFlux_mag')
+        plt.ylim(27,15)
         ylim = plt.ylim()
         plt.ylim(max(ylim), min(ylim))
-        plt.show()
+
+        plotname = plotbase+'_mag'
+        for s in suffixes:
+            plt.savefig(plotname+s)
+
+        if args.show:
+            plt.show()
+        plt.clf()
 
     if args.plot_flux:
         for f in filters:
@@ -55,5 +80,11 @@ if __name__ == "__main__":
             plt.errorbar(dataf['mjd'], dataf['base_PsfFlux_flux_zp25'], dataf['base_PsfFlux_fluxSigma_zp25'], linestyle='none', color=color[f])
         plt.xlabel('MJD')
         plt.ylabel('flux_zp25  [mag = -2.5*log10(flux) + 25]')
-        plt.show()
 
+        plotname = plotbase+'_flux'
+        for s in suffixes:
+            plt.savefig(plotname+s)
+
+        if args.show:
+            plt.show()
+        plt.clf()
