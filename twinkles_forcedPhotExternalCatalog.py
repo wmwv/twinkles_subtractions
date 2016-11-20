@@ -29,7 +29,7 @@ def run_forced_photometry(dataId, coord_file, repo_dir, dataset='calexp', verbos
 
 
 def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, source_row=0, dataset='calexp',
-                                      DEBUG=False):
+                                      debug=False):
     """Return Table with measurements."""
     butler = dafPersist.Butler(repo_dir)
 
@@ -57,7 +57,7 @@ def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, source_row=0,
     else:
         prefix = ''
     forced_dataset = prefix+'forcedRaDec_src'
-    if DEBUG:
+    if debug:
         print("FORCED_DATASET: ", forced_dataset)
 
     for f, dataIds in dataIds_by_filter.items():
@@ -122,10 +122,10 @@ def make_catalogs(lightcurve_visits_for_sn, repo_dir, dataset='calexp'):
 
 
 def run_photometry_for_coord_file(coord_file, repo_dir, dataset='calexp', filters=None,
-                                  RUN_PHOT=True, LIMIT_N=None, DEBUG=False):
+                                  run_phot=True, limit_n=None, debug=False):
     """Run photometry for all objects in a coordinate file on all available images.
 
-    RUN_PHOT : Run photometry.  If False then photometry is not run, but visits are gathered
+    run_phot : Run photometry.  If False then photometry is not run, but visits are gathered
     """
     # Can't put mutable as default argument above without much sadness.
     if filters is None:
@@ -138,15 +138,15 @@ def run_photometry_for_coord_file(coord_file, repo_dir, dataset='calexp', filter
         lightcurve_visits_for_sn[f] = []
         dataIds = find_science_dataIds(f, repo_dir, dataset=dataset)
         # Restrict to first N, if requested
-        if LIMIT_N:
-            # If LIMIT_N > len(dataIds), that's fine.  [:LIMIT_N] will just get the full array.
-            dataIds = dataIds[:LIMIT_N]
+        if limit_n:
+            # If limit_n > len(dataIds), that's fine.  [:limit_n] will just get the full array.
+            dataIds = dataIds[:limit_n]
 
-        if DEBUG:
+        if debug:
             print("DATA IDS: ", dataIds)
         for dataId in dataIds:
             lightcurve_visits_for_sn[f].append(dataId)
-            if RUN_PHOT:
+            if run_phot:
                 run_forced_photometry(dataId, coord_file, repo_dir, dataset=dataset)
 # How should this be done, and how should it be passed to assemble
     # We need to preserve order so that we read out the forced photometry
@@ -159,10 +159,10 @@ def run_photometry_for_coord_file(coord_file, repo_dir, dataset='calexp', filter
 
 
 def run_photometry_per_object(transient_objects, repo_dir, dataset='calexp', filters=None,
-                              RUN_PHOT=True, LIMIT_N=None, VERBOSE=False, DEBUG=False):
+                              run_phot=True, limit_n=None, verbose=False, debug=False):
     """Run photometry for given set of objects on all available images.
 
-    RUN_PHOT : Run photometry.  If False then photometry is not run, but visits are gathered
+    run_phot : Run photometry.  If False then photometry is not run, but visits are gathered
     """
     # Can't put mutable as default argument above without much sadness.
     if filters is None:
@@ -175,21 +175,21 @@ def run_photometry_per_object(transient_objects, repo_dir, dataset='calexp', fil
         lightcurve_visits_for_sn = {}
         print("Processing photometry for {}".format(name))
         for f in filters:
-            if VERBOSE:
+            if verbose:
                 print("FILTER: ", f)
                 print(name, f, repo_dir, dataset)
             lightcurve_visits_for_sn[f] = []
             dataIds = find_science_dataIds(f, repo_dir, dataset=dataset)
             # Restrict to first N, if requested
-            if LIMIT_N:
-                # If LIMIT_N > len(dataIds), that's fine.  [:LIMIT_N] will just get the full array.
-                dataIds = dataIds[:LIMIT_N]
+            if limit_n:
+                # If limit_n > len(dataIds), that's fine.  [:limit_n] will just get the full array.
+                dataIds = dataIds[:limit_n]
 
-            if DEBUG:
+            if debug:
                 print("DATA IDS: ", dataIds)
             for dataId in dataIds:
                 lightcurve_visits_for_sn[f].append(dataId)
-                if RUN_PHOT:
+                if run_phot:
                     run_forced_photometry(dataId, coord_file, repo_dir, dataset=dataset)
         lightcurve_visits[name] = lightcurve_visits_for_sn
 
@@ -227,7 +227,7 @@ def create_coord_file_from_diaSrc(dataId, repo_dir, out_file='coord_file.csv', d
 
 def run(args):
     lightcurve_visits = run_photometry_for_coord_file(args.coord_file, args.repo_dir, args.dataset,
-                                                      LIMIT_N=args.limit_n, RUN_PHOT=args.run_phot)
+                                                      limit_n=args.limit_n, run_phot=args.run_phot)
     make_catalogs(lightcurve_visits, args.repo_dir, dataset=args.dataset)
 
 
