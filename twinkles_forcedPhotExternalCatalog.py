@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import sys
-import os
 
 from collections import OrderedDict
 
@@ -13,7 +11,8 @@ import lsst.afw.image.utils as afwImageUtils
 import lsst.daf.persistence as dafPersist
 
 from forcedPhotExternalCatalog import ForcedPhotExternalCatalogTask
-from sub_twinkles import transient_objects, repo_dir, find_science_dataIds, filename_to_visit
+from sub_twinkles import repo_dir, find_science_dataIds, find_science_images
+
 
 def run_forced_photometry(dataId, coord_file, repo_dir, dataset='calexp', verbose=True):
     # Should expand out dataId to be more detailed than just visit.
@@ -29,7 +28,8 @@ def run_forced_photometry(dataId, coord_file, repo_dir, dataset='calexp', verbos
     ForcedPhotExternalCatalogTask.parseAndRun(args=args)
 
 
-def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, source_row=0, dataset='calexp', DEBUG=False):
+def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, source_row=0, dataset='calexp',
+                                      DEBUG=False):
     """Return Table with measurements."""
     butler = dafPersist.Butler(repo_dir)
 
@@ -47,7 +47,7 @@ def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, source_row=0,
     dtype = (str, float,
              float, float,
              float, float,
-             long, float, float, long,
+             int, float, float, int,
              float, float,
              float, float)
     table = Table(names=names, dtype=dtype)
@@ -85,8 +85,10 @@ def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, source_row=0,
             flux_mag_0, flux_magSigma_0 = calib.getFluxMag0()
             flux_mag_25 = 10**(-0.4*25) * flux_mag_0
             flux_norm = 1/flux_mag_25
-            cols_for_new_row['base_PsfFlux_flux_zp25'] = flux_norm * cols_for_new_row['base_PsfFlux_flux']
-            cols_for_new_row['base_PsfFlux_fluxSigma_zp25'] = flux_norm * cols_for_new_row['base_PsfFlux_fluxSigma']
+            cols_for_new_row['base_PsfFlux_flux_zp25'] = \
+                flux_norm * cols_for_new_row['base_PsfFlux_flux']
+            cols_for_new_row['base_PsfFlux_fluxSigma_zp25'] = \
+                flux_norm * cols_for_new_row['base_PsfFlux_fluxSigma']
 
             table.add_row(cols_for_new_row)
 
@@ -96,12 +98,7 @@ def assemble_catalogs_into_lightcurve(dataIds_by_filter, repo_dir, source_row=0,
 def test_assemble_catalogs_into_lightcurves():
     """Needs to have a run already existing to work."""
     # repo_dir  # From Global import above
-    science_visits = {'r': [
-        '255276',
-        '2221459'
-#        'v255276-fr',
-#        'v2221459-fr'
-        ]}
+    science_visits = {'r': ['255276', '2221459']}
     obs = assemble_catalogs_into_lightcurve(science_visits, repo_dir)
     print(obs)
 
@@ -124,8 +121,8 @@ def make_catalogs(lightcurve_visits_for_sn, repo_dir, dataset='calexp'):
         sn_lc.write(out_file, overwrite=True)
 
 
-def run_photometry_for_coord_file(coord_file, repo_dir, dataset='calexp',
-                   filters=None, RUN_PHOT=True, LIMIT_N=None, DEBUG=False):
+def run_photometry_for_coord_file(coord_file, repo_dir, dataset='calexp', filters=None,
+                                  RUN_PHOT=True, LIMIT_N=None, DEBUG=False):
     """Run photometry for all objects in a coordinate file on all available images.
 
     RUN_PHOT : Run photometry.  If False then photometry is not run, but visits are gathered
@@ -161,8 +158,8 @@ def run_photometry_for_coord_file(coord_file, repo_dir, dataset='calexp',
     return lightcurve_visits
 
 
-def run_photometry_per_object(transient_objects, repo_dir, dataset='calexp',
-                   filters=None, RUN_PHOT=True, DEBUG=False):
+def run_photometry_per_object(transient_objects, repo_dir, dataset='calexp', filters=None,
+                              RUN_PHOT=True, LIMIT_N=None, VERBOSE=False, DEBUG=False):
     """Run photometry for given set of objects on all available images.
 
     RUN_PHOT : Run photometry.  If False then photometry is not run, but visits are gathered
@@ -229,7 +226,8 @@ def create_coord_file_from_diaSrc(dataId, repo_dir, out_file='coord_file.csv', d
 
 
 def run(args):
-    lightcurve_visits = run_photometry_for_coord_file(args.coord_file, args.repo_dir, args.dataset, LIMIT_N=args.limit_n, RUN_PHOT=args.run_phot)
+    lightcurve_visits = run_photometry_for_coord_file(args.coord_file, args.repo_dir, args.dataset,
+                                                      LIMIT_N=args.limit_n, RUN_PHOT=args.run_phot)
     make_catalogs(lightcurve_visits, args.repo_dir, dataset=args.dataset)
 
 
